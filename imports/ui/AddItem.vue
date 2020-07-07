@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { Items } from "../api/items.js";
+import { Items } from "../../collections/items.js";
 
 export default {
     methods: 
@@ -61,25 +61,6 @@ export default {
                 rarity: this.newItemInput.rarity,
                 value: parseInt(this.newItemInput.value),
             };
-
-            // const newItem = {
-            //     name: "Crossbow +3",
-            //     rarity: 3,
-            //     value: 1000,
-            //     weapon: {
-            //         damageType: 'Piercing',
-            //         properties: ['Large', 'Ranged', 'Martial'],
-            //         modifiers: {
-            //             attack: 3,
-            //             damage: 3
-            //         },
-            //         range: {
-            //             min: 30,
-            //             max: 120
-            //         },
-            //         weight: 3
-            //     }
-            // };
 
             Items.insert(newItem);;
 
