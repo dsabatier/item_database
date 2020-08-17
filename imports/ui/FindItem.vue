@@ -4,33 +4,42 @@
         <div class="row my-2">
             <div class="input-group col-12">
                 <div class="mr-2">
-                    <input class="form-control mr-sm-2" type="text" placeholder="Item Name..." aria-label="Name">
+                    <label for="itemname">Item Name</label>
+                    <input id="itemname" class="form-control mr-sm-2" type="text" aria-label="Name" v-model="input.itemname">
                 </div>
                 <div class="mr-2">
+                    <label for="rarity">Rarity</label>
                     <select name="rarity" id="rarity" class="custom-select" placeholder="Select Rarity..."  v-model="input.rarity">
                         <option :value="-1" selected>Choose Rarity...</option>
                         <option v-for="rarity in rarities" v-bind:key="rarity.index" v-bind:value="rarity.index">{{ rarity.name }}</option>
                     </select>
                 </div>
                 <div class="mr-4">
+                    <label for="compare">Gold Value</label>
                     <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="compare">Gold Value</label>
-                        </div>
                         <select class="custom-select" id="compare" v-model="input.compare">
-                            <option value="" selected>Choose...</option>
                             <option value="$eq" selected>Equal To</option>
                             <option value="$lt">Less Than</option>
                             <option value="$gt">Greater Than</option>
                         </select>
-                        <input class="input-group-append" type="number" :placeholder=0 aria-label="Value" v-model="input.value">
+                        <input class="form-control" aria-label="Value" v-model="input.value">
                     </div>
                 </div>
-                <div>
-                    <button class="btn btn-primary" v-on:click="handleSearchPressed">Search</button>
-                    <button class="btn btn-outline-primary" v-on:click="handleResetPressed">Reset</button>
-                </div>
             </div>
+        </div>
+        <div class="row p-2">
+            <div class="border rounded p-3 bg-light col-3">
+                <span class="resistances-header"><b>Resistance Type</b></span><span class="resistances-option">*</span><span class="resistances-option">&#x2714;</span><span class="resistances-option">&#x2716;</span>
+                <three-radio-group v-for="resistance in resistances" :key="resistance.id" :groupName="resistance.name" :onChange="handleResistanceChanged" :values="[0, 1, 2]"></three-radio-group>
+            </div>
+            <!-- <div class="border rounded p-3 bg-light col-3">
+                <span class="resistances-header"><b>Vulnerability Type</b></span><span class="resistances-option">*</span><span class="resistances-option">&#x2714;</span><span class="resistances-option">&#x2716;</span>
+                <three-radio-group v-for="resistance in resistances" :key="resistance.id" :groupName="resistance.name" :onChange="handleResistanceChanged" :values="[0, 1, 2]"></three-radio-group>
+            </div>
+            <div class="border rounded p-3 bg-light col-3">
+                <span class="resistances-header"><b>Immunity Type</b></span><span class="resistances-option">*</span><span class="resistances-option">&#x2714;</span><span class="resistances-option">&#x2716;</span>
+                <three-radio-group v-for="resistance in resistances" :key="resistance.id" :groupName="resistance.name" :onChange="handleResistanceChanged" :values="[0, 1, 2]"></three-radio-group>
+            </div> -->
         </div>
         <div class="row">
             <div class="input-group col-2">
@@ -44,43 +53,17 @@
                 </div>
             </div>
         </div>
-        <div>
-        <label for="exampleFormControlSelect1">Resistances</label>
-            <select multiple class="form-control" id="exampleFormControlSelect1">
-                <option>Piercing</option>
-                <option>Blugeoning</option>
-                <option>Slashing</option>
-            </select>
+        <div class="py-4">
+            <button class="btn btn-primary" v-on:click="handleSearchPressed">Search</button>
+            <button class="btn btn-outline-primary" v-on:click="handleResetPressed">Reset</button>
         </div>
-        <!-- <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="hasResistancesCheck" arial-label="Checkbox Resistances" v-model="input.hasResistances" />
-            <label for="hasResistancesCheck">
-                Resistances
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="isArmor" arial-label="Checkbox Armor" v-model="input.isArmor" />
-            <label for="isArmor">
-                Armor
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="isEquipableCheck" arial-label="Checkbox Equipable" v-model="input.isEquipable" />
-            <label for="isEquipableCheck">
-                Equipable
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="isCursedCheck" arial-label="Checkbox Cursed" v-model="input.isCursed" />
-            <label for="isCursedCheck">
-                Cursed
-            </label>
-        </div> -->
     </div>
 </template>
 
 <script>
 import { Rarities } from "../../collections/rarities.js";
+import { Resistances } from "../../collections/resistances.js";
+
 export default {
     props: {
         sharedState: Object
@@ -89,12 +72,15 @@ export default {
         return {
             input:
                 {
-                    name: '',
+                    itemname: '',
                     rarity: -1,
-                    compare: '',
-                    value: 0,
+                    compare: "$eq",
+                    value: null,
                     magic: "0",
-                    resistances: 0
+                    resistances: {
+                        include: [], 
+                        exclude: []
+                    }
                 }
             }
     },
@@ -104,16 +90,12 @@ export default {
                 $or: [],
                 $and: []
             };
-            // const newQuery = {
-            //     "weapon.damageType": "Piercing",
-            //     "weapon.properties": { $in: ["Martial"] }
-            // };
 
             const rarity = this.rarities.find(q => q.index == this.input.rarity);
             if(rarity)
                 newQuery.$or.push({ rarity: this.input.rarity });
 
-            if(this.input.compare != "")
+            if(this.input.compare != "" && this.input.value)
                 newQuery.$and.push({ value: { [this.input.compare]: parseInt(this.input.value) * 100 } });
 
             // magic
@@ -122,10 +104,6 @@ export default {
 
             if(this.input.magic == 2)
                 newQuery.$and.push({ magic: { $exists: false }})
-
-            // resistances
-            if(this.input.hasResistances)
-                newQuery.$or.push({ resistances: { $exists: true }});
 
             if(this.input.isArmor)
                 newQuery.$or.push({ armor: { $exists: true }});
@@ -136,6 +114,16 @@ export default {
             if(this.input.isCursed)
                 newQuery.$or.push({ cursed: { $exists: true }});
 
+            if(this.input.resistances.include.length > 0)
+                newQuery.$and.push({ resistances: { $all: [...this.input.resistances.include]}})
+
+            if(this.input.resistances.exclude.length > 0)
+                newQuery.$and.push({ resistances: { $nin: [...this.input.resistances.exclude]}})
+
+
+            newQuery.$and.push({name: { $regex: this.input.itemname, $options: 'i'}});
+
+            // remove unused query params
             if(newQuery.$or.length <= 0)
                 delete newQuery.$or;
 
@@ -143,21 +131,99 @@ export default {
                 delete newQuery.$and;
 
             this.sharedState.query = newQuery;
+            console.log(this.sharedState.query);
         },
         handleResetPressed() {
             this.input = {
-                name: '',
+                itemname: '',
                 rarity: -1,
-                compare: '',
-                value: 0
+                compare: "$eq",
+                value: null,
+                magic: "0",
+                resistances: {
+                    include: [], 
+                    exclude: []
+                },
+                vulnerabilities: {
+                    include: [], 
+                    exclude: []
+                },
+                immunities: {
+                    include: [], 
+                    exclude: []
+                }
             }
             this.sharedState.query = {};
         },
+        handleResistanceChanged(newValue)
+        {
+            const queryModifier = parseInt(newValue.value);
+            const damageType = newValue.group.toLowerCase();
+            const typeArray = this.input.resistances;
+            this.handleOptionChanged({queryModifier, damageType, typeArray});
+        },
+        handleOptionChanged(options)
+        {
+            const { queryModifier, damageType, typeArray } = options;
+            if(queryModifier === 0)
+            {
+                if(typeArray.include.includes(damageType))
+                {
+                    let index = typeArray.include.indexOf(damageType);
+                    if(index > -1)
+                    {
+                        typeArray.include.splice(index, 1);
+                    }
+
+                    index = typeArray.exclude.indexOf(damageType);
+                    if(index > -1)
+                    {
+                        typeArray.exclude.splice(index, 1);
+                    }
+                }
+            }
+            else if(queryModifier === 1)
+            {
+                // BUG: not properly removing when going from exclude to include or any
+                typeArray.include.push(damageType);
+                let index = typeArray.exclude.indexOf(damageType);
+                if(index > -1)
+                {
+                   typeArray.exclude.splice(index, 1);
+                }
+            } 
+            else if(queryModifier === 2)
+            {
+                typeArray.exclude.push(damageType);
+                let index = typeArray.include.indexOf(damageType);
+                if(index > -1)
+                {
+                    typeArray.include.splice(index, 1);
+                }
+            }
+        }
     },
     meteor: {
         rarities: function() {
             return Rarities.find({}).fetch();
+        },
+        resistances: function() {
+            return Resistances.find({}).fetch();
         }
     }
 }
 </script>
+
+<style scoped>
+.resistances-header
+{
+    display: inline-block;
+    width: 165px;
+}
+
+.resistances-option
+{
+    display: inline-block;
+    width: 27px;
+}
+</style>

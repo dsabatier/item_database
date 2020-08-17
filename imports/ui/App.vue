@@ -5,7 +5,6 @@
     <find-item :sharedState="sharedState"/>
     <h1>item database<small class="text-muted"> a simple item database</small></h1>
     <item-list :items="items" :handleDeleteItemPressed="handleDeleteItemPressed"/>
-
 </body>
 </template>
 

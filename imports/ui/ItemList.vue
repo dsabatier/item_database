@@ -1,4 +1,5 @@
 <template>
+<div>
     <table class="table table-hover">
         <thead class="thead-light">
             <tr>
@@ -19,6 +20,11 @@
             </tr>
         </tbody>
     </table>
+    <div v-if="items.length == 0">
+        <h1>\(._.)/</h1>
+        <h6>There's nothing here</h6>
+    </div>
+</div>
 </template>
 
 <script>
